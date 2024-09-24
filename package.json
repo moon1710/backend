@@ -1,0 +1,15 @@
+{
+  "name": "miappmon",
+  "version": "1.0.0",
+  "description": "Servidor??",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/moon1710/backend.git"
+  },
+  "author": "Mon LoCa",
+  "license": "ISC"
+}
