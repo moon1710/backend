@@ -11,5 +11,8 @@
     "url": "https://github.com/moon1710/backend.git"
   },
   "author": "Mon LoCa",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.0"
+  }
 }
