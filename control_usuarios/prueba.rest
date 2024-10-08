@@ -1,0 +1,20 @@
+//https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+
+GET http://localhost:3000/
+
+###
+
+GET http://localhost:3000/prueba2
+
+###
+POST  http://localhost:3000/
+
+###
+PUT  http://localhost:3000/
+
+###
+
+PATCH  http://localhost:3000/
+
+###
+DELETE  http://localhost:3000/
