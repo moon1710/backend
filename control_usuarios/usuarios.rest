@@ -1,3 +1,12 @@
 GET http://localhost:3000/usuarios
 ###
 GET http://localhost:3000/usuarios/2
+###
+POST http://localhost:3000/usuarios/
+Content-Type: application/json
+{
+    "nombre" : "Monse",
+    "apellido" : "Caballero",
+    "email" : "moon.loca17@gmail.com",
+}
+

@@ -18,3 +18,19 @@ PATCH  http://localhost:3000/
 
 ###
 DELETE  http://localhost:3000/
+###
+POST http://localhost:3000/usuarios
+Content-Type: application/json
+{
+  "nombre": "Luis",
+  "apellido": "Martínez",
+  "email": "luismartinez@gmail.com"
+}
+###
+POST http://localhost:3000/usuarios
+Content-Type: application/json
+{
+  "nombre": "Mon",
+  "apellido": "pp",
+  "email": "luismartinez@gmail.com"
+}

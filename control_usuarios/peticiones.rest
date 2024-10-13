@@ -1,0 +1,32 @@
+GET http://localhost:3000/
+###
+GET http://localhost:3000/usuarios
+###
+GET http://localhost:3000/usuarios/1
+###
+POST http://localhost:3000/usuarios
+Content-Type: application/json
+{
+  "nombre": "moon",
+  "apellido": "Caba",
+  "email": "moon.loca@gmail.com"
+}
+###
+POST http://localhost:3000/usuarios
+Content-Type: application/json
+{
+  "nombre": "Lucía",
+  "apellido": "Ramírez",
+  "email": "moon.loca@gmail.com"
+}
+###
+PUT http://localhost:3000/usuarios/1
+Content-Type: application/json
+{
+  "nombre": "Juan",
+  "apellido": "Pérez Actualizado",
+  "email": "nuevoemail@gmail.com"
+}
+###
+DELETE http://localhost:3000/usuarios/1
+
