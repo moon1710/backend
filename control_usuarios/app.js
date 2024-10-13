@@ -37,12 +37,21 @@ app.post("/usuarios", (req, res) => {
 
   // Validación de campos vacíos
   if (!nombre || !apellido || !email) {
+    console.error("Error: Campos vacíos");
     return res.status(400).json({ error: "Todos los campos son obligatorios" });
+  }
+
+  // Verificar formato de correo electrónico válido
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    console.error("Error: Formato de correo no válido");
+    return res.status(400).json({ error: "Formato de correo no válido" });
   }
 
   // Verificar si el correo ya existe
   const emailExiste = usuarios.some((usuario) => usuario.email === email);
   if (emailExiste) {
+    console.error("Error: El correo ya está registrado");
     return res.status(400).json({ error: "El correo ya está registrado" });
   }
 
@@ -57,7 +66,9 @@ app.post("/usuarios", (req, res) => {
   usuarios.push(nuevoUsuario);
   console.log("Usuario agregado:", nuevoUsuario);
 
-  res.status(201).json(nuevoUsuario); // Código 201 Created
+  res
+    .status(201)
+    .json({ message: "Usuario creado exitosamente", usuario: nuevoUsuario });
 });
 
 // Ruta para obtener todos los usuarios
@@ -71,7 +82,7 @@ app.get("/usuarios/:id", (req, res) => {
   const userId = parseInt(req.params.id);
 
   if (isNaN(userId)) {
-    console.log("ID inválido recibido");
+    console.error("Error: ID inválido recibido");
     return res.status(400).json({ error: "ID inválido, debe ser un número" });
   }
 
@@ -80,7 +91,7 @@ app.get("/usuarios/:id", (req, res) => {
     console.log(`Usuario encontrado: ${JSON.stringify(usuario)}`);
     res.status(200).json(usuario);
   } else {
-    console.log(`Usuario con ID ${userId} no encontrado`);
+    console.error(`Error: Usuario con ID ${userId} no encontrado`);
     res.status(404).json({ error: "Usuario no encontrado" });
   }
 });
@@ -90,29 +101,53 @@ app.put("/usuarios/:id", (req, res) => {
   const userId = parseInt(req.params.id);
   const { nombre, apellido, email } = req.body;
 
+  if (isNaN(userId)) {
+    console.error("Error: ID inválido recibido");
+    return res.status(400).json({ error: "ID inválido, debe ser un número" });
+  }
+
   const usuario = usuarios.find((u) => u.id === userId);
   if (!usuario) {
+    console.error(`Error: Usuario con ID ${userId} no encontrado`);
     return res.status(404).json({ error: "Usuario no encontrado" });
   }
 
+  // Validar que los campos no estén vacíos
   if (!nombre || !apellido || !email) {
+    console.error("Error: Todos los campos son obligatorios");
     return res.status(400).json({ error: "Todos los campos son obligatorios" });
   }
 
+  // Verificar formato de correo electrónico válido
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    console.error("Error: Formato de correo no válido");
+    return res.status(400).json({ error: "Formato de correo no válido" });
+  }
+
+  // Actualizar el usuario
   usuario.nombre = nombre;
   usuario.apellido = apellido;
   usuario.email = email;
 
   console.log("Usuario actualizado:", usuario);
-  res.status(200).json(usuario);
+  res
+    .status(200)
+    .json({ message: "Usuario actualizado exitosamente", usuario });
 });
 
 // Ruta para eliminar un usuario
 app.delete("/usuarios/:id", (req, res) => {
   const userId = parseInt(req.params.id);
-  const usuarioIndex = usuarios.findIndex((u) => u.id === userId);
 
+  if (isNaN(userId)) {
+    console.error("Error: ID inválido recibido");
+    return res.status(400).json({ error: "ID inválido, debe ser un número" });
+  }
+
+  const usuarioIndex = usuarios.findIndex((u) => u.id === userId);
   if (usuarioIndex === -1) {
+    console.error(`Error: Usuario con ID ${userId} no encontrado`);
     return res.status(404).json({ error: "Usuario no encontrado" });
   }
 
