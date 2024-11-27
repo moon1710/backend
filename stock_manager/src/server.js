@@ -1,41 +1,41 @@
-const express=require("express");
-const usersRoutes=require('./routes/users');
+//PARA USAR OTRA TABLA DB -----> CREAR LA RUTA EN ESTE ARCHIVO
 
-//staff
-const staffRoutes = require('./routes/staff');
+const express = require("express");
+const usersRoutes = require("./routes/users");
+const staffRoutes = require("./routes/staff");
+const productsRoutes = require("./routes/products");
+const clientsRoutes = require("./routes/clients");
+const salesRoutes = require("./routes/sales");
 
-class Server{
-    constructor (){
-        this.app=express();
-        this.port=3000;
-        this. middlewares();
-        //this.app.use(express.json()); //Metodo express, es un middleware
-        this.routes();
-    }
+class Server {
+  constructor() {
+    //this.app=app;
+    this.app = express();
+    this.port = 3000;
+    this.app.use(express.json());
+    // es un middleware  que intercepta la solicitud para ver si hay algo en el formato JSON
+    this.middlewares();
+    this.routes();
+  }
 
+  //Importante ejecutarlo antes que el de routes
+  middlewares() {
+    this.app.use(express.json());
+  }
 
-    middlewares(){
-        this.app.use(express.json());
-    }
+  routes() {
+    this.app.use("/users", usersRoutes);
+    this.app.use("/staff", staffRoutes); // Rutas de staff
+    this.app.use("/products", productsRoutes);
+    this.app.use("/clients", clientsRoutes);
+    this.app.use("/sales", salesRoutes);
+  }
 
-    /*routes (){
-        this.app.get("/", (req, res)=> {
-            res.send('Hello world!');
-        });
-    }*/
-
-    routes(){
-        this.app.use('/users', usersRoutes);
-
-        //staff
-        this.app.use('/staff', staffRoutes);
-    }
-
-start() {
-    this.app.listen(this.port, ()=>{
-        console.log('Server listening on port ' + this.port);
+  start() {
+    this.app.listen(3000, () => {
+      console.log("Server listening on port " + this.port);
     });
-}
+  }
 }
 
-module.exports={Server};
+module.exports = { Server };
