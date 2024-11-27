@@ -2,49 +2,59 @@ const { request, response } = require("express");
 const pool = require("../db/conection");
 const { productsQueries } = require("../models/products");
 
-//MOSTRAR TODOS Productos
+// Función para validar la unidad de medida
+const validateMeasurementUnit = (unit) => {
+  const validUnits = [
+    "piece",
+    "meters",
+    "liters",
+    "square meters",
+    "cubic meters",
+  ];
+  return validUnits.includes(unit);
+};
+
+// Mostrar todos los productos
 const getAllProducts = async (req = request, res = response) => {
-  console.log(getAllProducts);
   let conn;
   try {
     conn = await pool.getConnection();
     const products = await conn.query(productsQueries.getAll);
     res.send(products);
   } catch (error) {
-    res.status(500).send(error); //'Interna server error'
-    return;
+    res.status(500).send(error.message || "Internal Server Error");
   } finally {
     if (conn) conn.end();
   }
 };
 
-//Mostrar Usuario por ID
+// Mostrar producto por ID
 const getProductsById = async (req = request, res = response) => {
   const { id } = req.params;
 
-  if (isNaN(id)) {
-    res.status(400).send("ID invalido");
+  if (isNaN(id) || +id <= 0) {
+    res.status(400).send("ID inválido (debe ser un número positivo)");
     return;
   }
 
   let conn;
   try {
     conn = await pool.getConnection();
-    const products_one = await conn.query(productsQueries.getById, [+id]);
+    const product = await conn.query(productsQueries.getById, [+id]);
 
-    if (products_one.length === 0) {
-      res.status(404).send("user not found ");
+    if (product.length === 0) {
+      res.status(404).send("Producto no encontrado");
       return;
     }
-    res.send(products_one);
+    res.send(product);
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).send(error.message || "Internal Server Error");
   } finally {
     if (conn) conn.end();
   }
 };
 
-//Agregar un Nuevo Producto
+// Crear producto
 const createProducts = async (req = request, res = response) => {
   const { product, description, stock, measurement_unit, price, discount } =
     req.body;
@@ -52,148 +62,189 @@ const createProducts = async (req = request, res = response) => {
   if (
     !product ||
     !description ||
-    !stock ||
+    stock == null ||
     !measurement_unit ||
-    !price ||
-    !discount
+    price == null ||
+    discount == null
   ) {
-    //verificar que esten los campos
-    res.status(400).send("Bad request. Some fields are missing");
+    res.status(400).send("Faltan campos obligatorios");
+    return;
+  }
+
+  if (typeof stock !== "number" || stock < 0) {
+    res.status(400).send("Stock inválido (debe ser un número positivo)");
+    return;
+  }
+
+  if (!validateMeasurementUnit(measurement_unit)) {
+    res.status(400).send("Unidad de medida inválida");
+    return;
+  }
+
+  if (typeof price !== "number" || price <= 0) {
+    res.status(400).send("Precio inválido (debe ser un número positivo)");
+    return;
+  }
+
+  if (typeof discount !== "number" || discount < 0 || discount > 100) {
+    res.status(400).send("Descuento inválido (debe estar entre 0 y 100)");
     return;
   }
 
   let conn;
   try {
     conn = await pool.getConnection();
-    const products_one1 = await conn.query(productsQueries.getByproduct, [
+
+    const existingProduct = await conn.query(productsQueries.getByproduct, [
       product,
     ]);
-
-    if (products_one1.length > 0) {
+    if (existingProduct.length > 0) {
       res.status(409).send("El producto ya existe");
       return;
     }
 
-    const newproducts_one = await conn.query(productsQueries.create, [
+    const newProduct = await conn.query(productsQueries.create, [
       product,
       description,
       stock,
       measurement_unit,
       price,
       discount,
-      id,
     ]);
 
-    if (newproducts_one.affectedRows === 0) {
-      //verificar si hubo camnios en la base de Datos
-      res.status(500).send("El producto no ha sido agregado");
+    if (newProduct.affectedRows === 0) {
+      res.status(500).send("El producto no se pudo agregar");
       return;
     }
-    res.status(201).send("Producto Agregado exitosamente"); //si no pues SI HUBO cambios
+
+    res.status(201).send("Producto creado exitosamente");
   } catch (error) {
-    res.status(500).send(error);
-    return;
+    res.status(500).send(error.message || "Internal Server Error");
   } finally {
-    if (conn) conn.end(); //Termina la conexion al final de todo
+    if (conn) conn.end();
   }
 };
 
-//ACtualizar producto
+// Actualizar producto
 const updateProducts = async (req = request, res = response) => {
   const { id } = req.params;
   const { product, description, stock, measurement_unit, price, discount } =
     req.body;
 
-  // Verificación de ID válido
-  if (isNaN(id)) {
-    res.status(400).send("Invalid ID");
+  if (isNaN(id) || +id <= 0) {
+    res.status(400).send("ID inválido (debe ser un número positivo)");
+    return;
+  }
+
+  if (
+    !product ||
+    !description ||
+    stock == null ||
+    !measurement_unit ||
+    price == null ||
+    discount == null
+  ) {
+    res.status(400).send("Faltan campos obligatorios");
+    return;
+  }
+
+  if (typeof stock !== "number" || stock < 0) {
+    res.status(400).send("Stock inválido (debe ser un número positivo)");
+    return;
+  }
+
+  if (!validateMeasurementUnit(measurement_unit)) {
+    res.status(400).send("Unidad de medida inválida");
+    return;
+  }
+
+  if (typeof price !== "number" || price <= 0) {
+    res.status(400).send("Precio inválido (debe ser un número positivo)");
+    return;
+  }
+
+  if (typeof discount !== "number" || discount < 0 || discount > 100) {
+    res.status(400).send("Descuento inválido (debe estar entre 0 y 100)");
     return;
   }
 
   let conn;
   try {
-    // Conexión a la base de datos
     conn = await pool.getConnection();
 
-    // Verificar si el usuario existe
-    const products_one = await conn.query(productsQueries.getById, [+id]);
-    if (products_one.length === 0) {
-      res.status(404).send("Producto not found");
+    const existingProduct = await conn.query(productsQueries.getById, [+id]);
+    if (existingProduct.length === 0) {
+      res.status(404).send("Producto no encontrado");
       return;
     }
 
-    // Verificar si el nuevo nombre del producto ya está en uso por otro producto
-    const product_existente = await conn.query(productsQueries.getByproduct, [
+    const duplicateProduct = await conn.query(productsQueries.getByproduct, [
       product,
     ]);
-    if (product_existente.length > 0 && product_existente[0].id !== +id) {
-      res.status(409).send("Ese Producto ya existe");
+    if (duplicateProduct.length > 0 && duplicateProduct[0].id !== +id) {
+      res
+        .status(409)
+        .send("El nombre del producto ya está en uso por otro producto");
       return;
     }
 
-    // Actualizar el usuario //PASAR 8 CAMPOS
-    const updateProducto = await conn.query(productsQueries.update, [
+    const updatedProduct = await conn.query(productsQueries.update, [
       product,
       description,
       stock,
       measurement_unit,
       price,
       discount,
-      +id, // Asegúrate de convertir el id a número para evitar errores.
+      +id,
     ]);
 
-    // Comprobar si la actualización fue exitosa
-    if (updateProducto.affectedRows === 0) {
-      res.status(500).send("User could not be updated");
+    if (updatedProduct.affectedRows === 0) {
+      res.status(500).send("El producto no se pudo actualizar");
       return;
     }
 
-    // Responder con éxito
-    res.status(200).send("User updated successfully");
+    res.status(200).send("Producto actualizado exitosamente");
   } catch (error) {
-    // Manejo de errores
     res.status(500).send(error.message || "Internal Server Error");
   } finally {
-    // Cerrar la conexión
     if (conn) conn.end();
   }
 };
 
-//Eliminar Producto
+// Eliminar producto
 const deleteProduct = async (req = request, res = response) => {
   const { id } = req.params;
 
-  if (isNaN(id)) {
-    res.status(400).send("Invalid ID");
+  if (isNaN(id) || +id <= 0) {
+    res.status(400).send("ID inválido (debe ser un número positivo)");
     return;
   }
 
   let conn;
   try {
     conn = await pool.getConnection();
-    const products_one = await conn.query(productsQueries.getById, [+id]);
 
-    if (products_one.length === 0) {
-      res.status(500).send("eror no encontrado");
+    const product = await conn.query(productsQueries.getById, [+id]);
+    if (product.length === 0) {
+      res.status(404).send("Producto no encontrado");
       return;
     }
 
-    const deleteProduct_one = await conn.query(productsQueries.delete, [+id]);
-    if (deleteProduct_one.affectedRows === 0) {
-      res.status(500).send("Product could not be deleted");
+    const deletedProduct = await conn.query(productsQueries.delete, [+id]);
+    if (deletedProduct.affectedRows === 0) {
+      res.status(500).send("El producto no se pudo eliminar");
       return;
     }
-    res.send("Producto borrado exitosamente");
+
+    res.send("Producto eliminado exitosamente");
   } catch (error) {
-    res.status(500).send(error);
-    return;
+    res.status(500).send(error.message || "Internal Server Error");
   } finally {
-    // Cerrar la conexión
     if (conn) conn.end();
   }
 };
 
-//Exportacion de Metodos
+// Exportar métodos
 module.exports = {
   getAllProducts,
   getProductsById,

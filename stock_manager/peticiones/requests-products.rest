@@ -21,11 +21,11 @@ Content-Type: application/json
 
 ###
 //ACTUALIZAR Producto
-PUT  http://localhost:3000/products/5
+PUT  http://localhost:3000/products/1
 Content-Type: application/json
 
 {
-  "product": "agua",
+  "product": "Refresco",
   "description": "refresco",
   "stock": 10,
   "measurement_unit": "piece",

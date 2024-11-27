@@ -11,19 +11,19 @@ POST http://localhost:3000/clients/
 Content-Type: application/json
 
 {
- "rfc": "hola",
-  "first_name": "xxx",
-  "last_name": "xxx",
+ "rfc": "RFC123456789",
+  "first_name": "Nombre",
+  "last_name": "Apellidos",
   "birth_date": "1990-05-20",
-  "gender": "M",
+  "gender": "F",
   "phone_number": "5551234567",
-  "email": "xxx@xxx.com",
+  "email": "xxx@homtial.com",
   "address": "xxx"
 }
 
 ###
 //ACTUALIZAR cliente
-PUT  http://localhost:3000/clients/hola
+PUT  http://localhost:3000/clients/RFC123456789
 Content-Type: application/json
 
 {
@@ -31,8 +31,8 @@ Content-Type: application/json
 "last_name": "PAPA",
 "birth_date": "1990-01-01",
 "gender":"M",
-"phone_number": "11156789",
-"email": "cola@gmail.com",
+"phone_number": "1234567890",
+"email": "pp@gmail.com",
 "address": "micasa"
 }
 

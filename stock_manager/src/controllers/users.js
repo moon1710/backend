@@ -1,39 +1,35 @@
 const { request, response } = require("express");
 const pool = require("../db/conection");
 const { userQueries } = require("../models/users");
-const bcrypt = require("bcrypt"); //esto es para encriptar contraseñas
+const bcrypt = require("bcrypt");
 
 const saltRounds = 10;
 
-// const users =  [
-//     {id: 1, name: 'Jonh dohe'},
-//     {id: 2, name: 'juan carlos'},
-//     {id: 3, name: 'jose jose'},
-// ];
+// Validaciones específicas
+const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+const validateUsername = (username) => /^[a-zA-Z0-9_-]{3,16}$/.test(username);
+const validatePassword = (password) => password.length >= 6;
 
-//MOSTRAR TODOS USUARIOS
+// Mostrar todos los usuarios
 const getAllUsers = async (req = request, res = response) => {
   let conn;
   try {
     conn = await pool.getConnection();
     const users = await conn.query(userQueries.getAll);
     res.send(users);
-    //ORM Object Relational Model
-    //Lo que hacen es manejar la logic de las consultas en el modelo, nosotros lo haremos con las queries
   } catch (error) {
-    res.status(500).send(error); //'Interna server error'
-    return;
+    res.status(500).send(error.message || "Internal Server Error");
   } finally {
     if (conn) conn.end();
   }
 };
 
-//Mostrar Usuario por ID
+// Mostrar usuario por ID
 const getUserById = async (req = request, res = response) => {
   const { id } = req.params;
 
-  if (isNaN(id)) {
-    res.status(400).send("ID invalido");
+  if (isNaN(id) || +id <= 0) {
+    res.status(400).send("ID inválido (debe ser un número positivo)");
     return;
   }
 
@@ -43,35 +39,56 @@ const getUserById = async (req = request, res = response) => {
     const user = await conn.query(userQueries.getById, [+id]);
 
     if (user.length === 0) {
-      res.status(404).send("user not found ");
+      res.status(404).send("Usuario no encontrado");
       return;
     }
     res.send(user);
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).send(error.message || "Internal Server Error");
   } finally {
     if (conn) conn.end();
   }
 };
 
-////            ESTO FUE TAREA que depues nos enseño el PROFE
-//Crear Usuario
+// Crear usuario
 const createUser = async (req = request, res = response) => {
   const { username, password, email } = req.body;
 
   if (!username || !password || !email) {
-    //verificar que esten los campos
-    res.status(400).send("Bad request. Some fields are missing");
+    res.status(400).send("Faltan campos obligatorios");
+    return;
+  }
+
+  if (!validateUsername(username)) {
+    res
+      .status(400)
+      .send(
+        "Nombre de usuario inválido (debe tener entre 3 y 16 caracteres alfanuméricos)"
+      );
+    return;
+  }
+
+  if (!validatePassword(password)) {
+    res
+      .status(400)
+      .send("Contraseña inválida (debe tener al menos 6 caracteres)");
+    return;
+  }
+
+  if (!validateEmail(email)) {
+    res.status(400).send("Correo electrónico inválido");
     return;
   }
 
   let conn;
   try {
     conn = await pool.getConnection();
-    const user = await conn.query(userQueries.getByUsername, [username]);
+    const existingUser = await conn.query(userQueries.getByUsername, [
+      username,
+    ]);
 
-    if (user.length > 0) {
-      res.status(409).send("user name ya existe");
+    if (existingUser.length > 0) {
+      res.status(409).send("El nombre de usuario ya está en uso");
       return;
     }
 
@@ -84,154 +101,122 @@ const createUser = async (req = request, res = response) => {
     ]);
 
     if (newUser.affectedRows === 0) {
-      //verificar si hubo camnios en la base de Datos
-      res.status(500).send("user no be created");
+      res.status(500).send("No se pudo crear el usuario");
       return;
     }
-    //console.log(newUser);
-    res.status(201).send("User created succesfully"); //si no pues SI HUBO cambios
+
+    res.status(201).send("Usuario creado exitosamente");
   } catch (error) {
-    res.status(500).send(error);
-    return;
+    res.status(500).send(error.message || "Internal Server Error");
   } finally {
-    if (conn) conn.end(); //Termina la conexion al final de todo
+    if (conn) conn.end();
   }
 };
 
+// Iniciar sesión
 const loginUser = async (req = request, res = response) => {
   const { username, password } = req.body;
 
   if (!username || !password) {
-    res.status(400).send("username and pasword are mandatory!");
+    res
+      .status(400)
+      .send("El nombre de usuario y la contraseña son obligatorios");
     return;
   }
 
   let conn;
   try {
     conn = await pool.getConnection();
-
     const user = await conn.query(userQueries.getByUsername, [username]);
+
     if (user.length === 0) {
-      res._construct(404).send("Bad username or password");
+      res.status(404).send("Nombre de usuario o contraseña incorrectos");
       return;
     }
 
     const passwordMatch = await bcrypt.compare(password, user[0].password);
 
     if (!passwordMatch) {
-      res.status(403).send("Bad username or password");
+      res.status(403).send("Nombre de usuario o contraseña incorrectos");
+      return;
     }
 
-    res.send("Loged in!");
+    res.send("Inicio de sesión exitoso");
   } catch (error) {
-    res.status(500).send(error);
-    return;
+    res.status(500).send(error.message || "Internal Server Error");
   } finally {
-    if (conn) conn.end(); //Termina la conexion al final de todo
+    if (conn) conn.end();
   }
 };
 
-//------------------------------------------------------------------------------------
-// Actualizar un usuario
-// const updateUser = async (req = request, res = response) => {
-//     const {id} = req.params;
-//     const {name} = req.body;
-//     //para ver que haya id
-//     if (isNaN(id)) {
-//         res.status(400).send('Invalid ID');
-//         return;
-//     }
-//     //para ver que los datos esten completos
-//     if(!username || !password || !email){
-//         res.status(400).send("Bad request. Some fields are missing");
-//         return;
-//     }
-//     try{
-//         conn= await pool.getConnection();
-//         const user = await conn.query(userQueries.getByUsername,[username]);
-
-//     }catch(error){
-//         res.status(500).send(error);
-//         return;
-//     }finally{
-//         if (conn) conn.end();
-//     }
-
-//     const user = users.find(user => user.id === +id);
-//     if (!user) {
-//         res.status(404).send('User not found');
-//         return;
-//     }
-//     users.forEach(user=>{
-//       if(user.id===+id){
-//           user.name=name;
-//       }
-//   });
-//   res.send('user update succerfully');
-//   }
-//----------------------------------------------------------------
-
-//Actualizar usuario -- Sirve Bien
+// Actualizar usuario
 const updateUser = async (req = request, res = response) => {
   const { id } = req.params;
   const { username, password, email } = req.body;
 
-  // Verificación de ID válido
-  if (isNaN(id)) {
-    res.status(400).send("Invalid ID");
+  if (isNaN(id) || +id <= 0) {
+    res.status(400).send("ID inválido (debe ser un número positivo)");
     return;
   }
 
-  // Verificación de que todos los datos estén presentes
   if (!username || !password || !email) {
-    res.status(400).send("Bad request. Some fields are missing");
+    res.status(400).send("Faltan campos obligatorios");
+    return;
+  }
+
+  if (!validateUsername(username)) {
+    res.status(400).send("Nombre de usuario inválido");
+    return;
+  }
+
+  if (!validatePassword(password)) {
+    res.status(400).send("Contraseña inválida");
+    return;
+  }
+
+  if (!validateEmail(email)) {
+    res.status(400).send("Correo electrónico inválido");
     return;
   }
 
   let conn;
   try {
-    // Conexión a la base de datos
     conn = await pool.getConnection();
 
-    // Verificar si el usuario existe
     const user = await conn.query(userQueries.getById, [id]);
     if (user.length === 0) {
-      res.status(404).send("User not found");
+      res.status(404).send("Usuario no encontrado");
       return;
     }
 
-    // Actualizar el usuario
+    const hashPassword = await bcrypt.hash(password, saltRounds);
+
     const updatedUser = await conn.query(userQueries.updateUser, [
       username,
-      password,
+      hashPassword,
       email,
-      id,
+      +id,
     ]);
 
-    // Comprobar si la actualización fue exitosa
     if (updatedUser.affectedRows === 0) {
-      res.status(500).send("User could not be updated");
+      res.status(500).send("No se pudo actualizar el usuario");
       return;
     }
 
-    // Responder con éxito
-    res.status(200).send("User updated successfully");
+    res.status(200).send("Usuario actualizado exitosamente");
   } catch (error) {
-    // Manejo de errores
     res.status(500).send(error.message || "Internal Server Error");
   } finally {
-    // Cerrar la conexión
     if (conn) conn.end();
   }
 };
 
-//Eliminar Usuario por ID -- Hecho en Clase
-// Ruta para obtener un usuario por ID
+// Eliminar usuario
 const deleteUser = async (req = request, res = response) => {
   const { id } = req.params;
 
-  if (isNaN(id)) {
-    res.status(400).send("Invalid ID");
+  if (isNaN(id) || +id <= 0) {
+    res.status(400).send("ID inválido (debe ser un número positivo)");
     return;
   }
 
@@ -241,22 +226,20 @@ const deleteUser = async (req = request, res = response) => {
     const user = await conn.query(userQueries.getById, [+id]);
 
     if (user.length === 0) {
-      res.status(500).send("eror no encontrado");
+      res.status(404).send("Usuario no encontrado");
       return;
     }
 
-    const deleteUser = await conn.query(userQueries.delete, [+id]);
-    if (deleteUser.affectedRows === 0) {
-      res.status(500).send("user could not be deleted");
+    const deletedUser = await conn.query(userQueries.delete, [+id]);
+    if (deletedUser.affectedRows === 0) {
+      res.status(500).send("No se pudo eliminar el usuario");
       return;
     }
 
-    res.send("User borrado exitosamente");
+    res.send("Usuario eliminado exitosamente");
   } catch (error) {
-    res.status(500).send(error);
-    return;
+    res.status(500).send(error.message || "Internal Server Error");
   } finally {
-    // Cerrar la conexión
     if (conn) conn.end();
   }
 };

@@ -2,30 +2,31 @@ const { request, response } = require("express");
 const pool = require("../db/conection");
 const { staffQueries } = require("../models/staff");
 
-//MOSTRAR TODOS USUARIOS
+// Validaciones de campos específicos
+const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+const validatePhoneNumber = (phone_number) => /^\d{10}$/.test(phone_number);
+const validateGender = (gender) => ["M", "F"].includes(gender);
+
+// Mostrar todos los miembros del staff
 const getAllStaff = async (req = request, res = response) => {
-  console.log(getAllStaff);
   let conn;
   try {
     conn = await pool.getConnection();
     const staff = await conn.query(staffQueries.getAll);
     res.send(staff);
   } catch (error) {
-    res.status(500).send(error); //'Interna server error'
-    return;
+    res.status(500).send(error.message || "Error interno del servidor");
   } finally {
     if (conn) conn.end();
   }
 };
 
-//Mostrar Usuario por ID
+// Mostrar un miembro del staff por ID
 const getStaffById = async (req = request, res = response) => {
   const { id } = req.params;
 
-  console.log(getStaffById);
-
-  if (isNaN(id)) {
-    res.status(400).send("ID invalido");
+  if (isNaN(id) || +id <= 0) {
+    res.status(400).send("ID inválido (debe ser un número positivo)");
     return;
   }
 
@@ -35,19 +36,19 @@ const getStaffById = async (req = request, res = response) => {
     const staffMember = await conn.query(staffQueries.getById, [+id]);
 
     if (staffMember.length === 0) {
-      res.status(404).send("Staff Member not found ");
+      res.status(404).send("Miembro del staff no encontrado");
       return;
     }
+
     res.send(staffMember);
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).send(error.message || "Error interno del servidor");
   } finally {
     if (conn) conn.end();
   }
 };
 
-////            ESTO FUE TAREA que depues nos enseño el PROFE
-//Crear Usuario
+// Crear un nuevo miembro del staff
 const createStaff = async (req = request, res = response) => {
   const {
     first_name,
@@ -60,8 +61,6 @@ const createStaff = async (req = request, res = response) => {
     user_id,
   } = req.body;
 
-  console.log(createStaff);
-
   if (
     !first_name ||
     !last_name ||
@@ -72,18 +71,39 @@ const createStaff = async (req = request, res = response) => {
     !address ||
     !user_id
   ) {
-    //verificar que esten los campos
-    res.status(400).send("Bad request. Some fields are missing");
+    res.status(400).send("Faltan campos obligatorios");
+    return;
+  }
+
+  if (!validateEmail(email)) {
+    res.status(400).send("Correo electrónico inválido");
+    return;
+  }
+
+  if (!validatePhoneNumber(phone_number)) {
+    res.status(400).send("Número de teléfono inválido (debe tener 10 dígitos)");
+    return;
+  }
+
+  if (!validateGender(gender)) {
+    res.status(400).send("Género inválido (debe ser 'M' o 'F')");
+    return;
+  }
+
+  if (isNaN(user_id) || +user_id <= 0) {
+    res
+      .status(400)
+      .send("ID de usuario inválido (debe ser un número positivo)");
     return;
   }
 
   let conn;
   try {
     conn = await pool.getConnection();
-    const staffMenber = await conn.query(staffQueries.getByEmail, [email]);
 
-    if (staffMenber.length > 0) {
-      res.status(409).send("Email ya existe");
+    const existingEmail = await conn.query(staffQueries.getByEmail, [email]);
+    if (existingEmail.length > 0) {
+      res.status(409).send("El correo electrónico ya está registrado");
       return;
     }
 
@@ -99,21 +119,19 @@ const createStaff = async (req = request, res = response) => {
     ]);
 
     if (newStaffMember.affectedRows === 0) {
-      //verificar si hubo camnios en la base de Datos
-      res.status(500).send("staffmember no be created");
+      res.status(500).send("No se pudo crear el miembro del staff");
       return;
     }
-    //console.log(newUser);
-    res.status(201).send("staffmember created succesfully"); //si no pues SI HUBO cambios
+
+    res.status(201).send("Miembro del staff creado exitosamente");
   } catch (error) {
-    res.status(500).send(error);
-    return;
+    res.status(500).send(error.message || "Error interno del servidor");
   } finally {
-    if (conn) conn.end(); //Termina la conexion al final de todo
+    if (conn) conn.end();
   }
 };
 
-//Actualizar usuario -- Sirve Bien
+// Actualizar un miembro del staff
 const updateStaff = async (req = request, res = response) => {
   const { id } = req.params;
   const {
@@ -127,33 +145,57 @@ const updateStaff = async (req = request, res = response) => {
     user_id,
   } = req.body;
 
-  console.log(updateStaff);
-
-  // Verificación de ID válido
-  if (isNaN(id)) {
-    res.status(400).send("Invalid ID");
+  if (isNaN(id) || +id <= 0) {
+    res.status(400).send("ID inválido (debe ser un número positivo)");
     return;
   }
 
-  // Verificación de que todos los datos estén presentes
-  // if (!username || !password || !email) {
-  //     res.status(400).send("Bad request. Some fields are missing");
-  //     return;
-  // }
+  if (
+    !first_name ||
+    !last_name ||
+    !birth_date ||
+    !gender ||
+    !phone_number ||
+    !email ||
+    !address ||
+    !user_id
+  ) {
+    res.status(400).send("Faltan campos obligatorios");
+    return;
+  }
+
+  if (!validateEmail(email)) {
+    res.status(400).send("Correo electrónico inválido");
+    return;
+  }
+
+  if (!validatePhoneNumber(phone_number)) {
+    res.status(400).send("Número de teléfono inválido");
+    return;
+  }
+
+  if (!validateGender(gender)) {
+    res.status(400).send("Género inválido (debe ser 'M' o 'F')");
+    return;
+  }
+
+  if (isNaN(user_id) || +user_id <= 0) {
+    res
+      .status(400)
+      .send("ID de usuario inválido (debe ser un número positivo)");
+    return;
+  }
 
   let conn;
   try {
-    // Conexión a la base de datos
     conn = await pool.getConnection();
 
-    // Verificar si el usuario existe
-    const staffMember = await conn.query(staffQueries.getById, [id]);
-    if (staffMember.length === 0) {
-      res.status(404).send("staff not found");
+    const existingStaff = await conn.query(staffQueries.getById, [+id]);
+    if (existingStaff.length === 0) {
+      res.status(404).send("Miembro del staff no encontrado");
       return;
     }
 
-    // Actualizar el usuario //PASAR 8 CAMPOS
     const updatedStaffMember = await conn.query(staffQueries.update, [
       first_name,
       last_name,
@@ -166,56 +208,48 @@ const updateStaff = async (req = request, res = response) => {
       +id,
     ]);
 
-    // Comprobar si la actualización fue exitosa
     if (updatedStaffMember.affectedRows === 0) {
-      res.status(500).send("User could not be updated");
+      res.status(500).send("No se pudo actualizar el miembro del staff");
       return;
     }
 
-    // Responder con éxito
-    res.status(200).send("User updated successfully");
+    res.status(200).send("Miembro del staff actualizado exitosamente");
   } catch (error) {
-    // Manejo de errores
-    res.status(500).send(error.message || "Internal Server Error");
+    res.status(500).send(error.message || "Error interno del servidor");
   } finally {
-    // Cerrar la conexión
     if (conn) conn.end();
   }
 };
 
-//Eliminar Usuario por ID -- Hecho en Clase
-// Ruta para obtener un usuario por ID
+// Eliminar un miembro del staff
 const deleteStaff = async (req = request, res = response) => {
   const { id } = req.params;
-  console.log(deleteStaff);
 
-  if (isNaN(id)) {
-    res.status(400).send("Invalid ID");
+  if (isNaN(id) || +id <= 0) {
+    res.status(400).send("ID inválido (debe ser un número positivo)");
     return;
   }
 
   let conn;
   try {
     conn = await pool.getConnection();
-    const staffMember = await conn.query(staffQueries.getById, [+id]);
 
-    if (staffMember.length === 0) {
-      res.status(500).send("eror no encontrado");
+    const existingStaff = await conn.query(staffQueries.getById, [+id]);
+    if (existingStaff.length === 0) {
+      res.status(404).send("Miembro del staff no encontrado");
       return;
     }
 
-    const deleteStaffMember = await conn.query(staffQueries.delete, [+id]);
-    if (deleteStaffMember.affectedRows === 0) {
-      res.status(500).send("Staff could not be deleted");
+    const deletedStaff = await conn.query(staffQueries.delete, [+id]);
+    if (deletedStaff.affectedRows === 0) {
+      res.status(500).send("No se pudo eliminar el miembro del staff");
       return;
     }
 
-    res.send("staff borrado exitosamente");
+    res.send("Miembro del staff eliminado exitosamente");
   } catch (error) {
-    res.status(500).send(error);
-    return;
+    res.status(500).send(error.message || "Error interno del servidor");
   } finally {
-    // Cerrar la conexión
     if (conn) conn.end();
   }
 };
