@@ -1,0 +1,28 @@
+GET http://localhost:3000/users
+
+###Mostar usuario por ID
+GET http://localhost:3000/users/2
+
+### Agregar
+POST http://localhost:3000/users
+Content-Type: application/json
+
+{
+  "first_name":" Rosalia",
+  "last_name": "camacho",
+  "email": "rosalia@gmail.com",
+  "password": "rosalia123"
+}
+
+### EDITAR
+PUT http://localhost:3000/users/5
+Content-Type: application/json
+
+{
+  "first_name":" Rosalia",
+  "last_name": "Camacho",
+  "email": "rosalia@gmail.com"
+}
+
+###Elimimar usuario
+DELETE http://localhost:3000/users/4
