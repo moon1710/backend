@@ -3,7 +3,7 @@ const mariadb=require('mariadb');
 const config={
     host: 'localhost',
     user: 'root',
-    password: 'r00tP45w0rd',
+    password: '',
     database: 'pokemon_game',
     port: 3306,
     connectionLimit: 10,
