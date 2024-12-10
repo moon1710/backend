@@ -1,0 +1,25 @@
+GET http://localhost:3000/pokemons
+
+###Mostar usuario por ID
+GET http://localhost:3000/pokemons/2
+
+### Agregar
+POST http://localhost:3000/pokemons
+Content-Type: application/json
+
+{
+    "name": "bingbong",
+    "image" : "aaaaaa"
+}
+
+### EDITAR
+PUT http://localhost:3000/pokemons/151
+Content-Type: application/json
+
+{
+    "name": "sonichu",
+    "image" : "no"
+}
+
+###Elimimar usuario
+DELETE http://localhost:3000/pokemons/151
