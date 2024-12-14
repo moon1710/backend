@@ -7,7 +7,6 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
-DROP TABLE IF EXISTS `favorites`;
 CREATE TABLE `favorites` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `pokemon_id` int(11) DEFAULT NULL,
@@ -16,35 +15,31 @@ CREATE TABLE `favorites` (
   KEY `pokemon_id` (`pokemon_id`),
   KEY `users_id` (`users_id`),
   CONSTRAINT `favorites_ibfk_1` FOREIGN KEY (`pokemon_id`) REFERENCES `pokemons` (`id`),
-  CONSTRAINT `favorites_ibfk_2` FOREIGN KEY (`users_id`) REFERENCES `users` (`id`)
+  CONSTRAINT `favorites_ibfk_2` FOREIGN KEY (`users_id`) REFERENCES `users` (`id`),
+  CONSTRAINT `favorites_ibfk_3` FOREIGN KEY (`pokemon_id`) REFERENCES `pokemons` (`id`),
+  CONSTRAINT `favorites_ibfk_4` FOREIGN KEY (`users_id`) REFERENCES `users` (`id`),
+  CONSTRAINT `favorites_ibfk_5` FOREIGN KEY (`pokemon_id`) REFERENCES `pokemons` (`id`),
+  CONSTRAINT `favorites_ibfk_6` FOREIGN KEY (`users_id`) REFERENCES `users` (`id`),
+  CONSTRAINT `favorites_ibfk_7` FOREIGN KEY (`pokemon_id`) REFERENCES `pokemons` (`id`),
+  CONSTRAINT `favorites_ibfk_8` FOREIGN KEY (`users_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
-DROP TABLE IF EXISTS `pokemons`;
 CREATE TABLE `pokemons` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(30) DEFAULT NULL,
   `image` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `id` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=156 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
-DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `first_name` varchar(30) DEFAULT NULL,
   `last_name` varchar(30) DEFAULT NULL,
   `email` varchar(50) DEFAULT NULL,
   `password` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `id` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
-
-
-
-
-
-
-
+  `is_admin` tinyint(4) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;

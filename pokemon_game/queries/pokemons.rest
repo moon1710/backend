@@ -1,7 +1,7 @@
 GET http://localhost:3000/pokemons
 
 ###Mostar usuario por ID
-GET http://localhost:3000/pokemons/2
+GET http://localhost:3000/pokemons/151
 
 ### Agregar
 POST http://localhost:3000/pokemons
@@ -23,3 +23,6 @@ Content-Type: application/json
 
 ###Elimimar usuario
 DELETE http://localhost:3000/pokemons/151
+
+###
+GET http://localhost:3000/pokemons/play

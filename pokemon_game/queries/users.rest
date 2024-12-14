@@ -1,0 +1,35 @@
+GET http://localhost:3000/users
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Ik1vbnNlcnJhdCIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNjk0ODcxNjAwLCJleHAiOjE2OTQ5NTgwMDB9.hv0Cn3f9w3zYvH2L8_JoNXj20gnci1FdZ_k6gi_L-Ds
+
+
+###Mostar usuario por ID
+GET http://localhost:3000/users/1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Ik1vbnNlcnJhdCIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNjk0ODcxNjAwLCJleHAiOjE2OTQ5NTgwMDB9.hv0Cn3f9w3zYvH2L8_JoNXj20gnci1FdZ_k6gi_L-Ds
+
+
+### Agregar
+POST http://localhost:3000/users
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Ik1vbnNlcnJhdCIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNjk0ODcxNjAwLCJleHAiOjE2OTQ5NTgwMDB9.hv0Cn3f9w3zYvH2L8_JoNXj20gnci1FdZ_k6gi_L-Ds
+
+{
+  "first_name":"Monse",
+  "last_name": "Caba",
+  "email": "mon@gmail.com",
+  "password": "contraseña"
+}
+
+### EDITAR
+PUT http://localhost:3000/users/5
+Content-Type: application/json
+
+{
+  "first_name":"BingBong",
+  "last_name": "PlipPlop",
+  "email": "aaaaaaa@gmail.com"
+}
+
+###Elimimar usuario
+DELETE http://localhost:3000/users/4
